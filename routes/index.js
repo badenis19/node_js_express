@@ -3,17 +3,25 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'I am the Title', name: 'Jade', condition: true, anyArray: [4,5,6]});
+  res.render('index', { title: 'Form Validation', success: req.session.success, errors: req.session.errors });
+  req.session.errors = null;
 });
 
-router.get('/test/:id', function(req, res, next){
-  res.render('test', {output: req.params.id })
-})
+router.post('/submit', function(req, res, next) {
+  // Check validity of values
+  req.check('email', 'Invalid email address').isEmail();
+  req.check('password', "Invalid password").isLength({min: 4}).equals(req.body.confirmPassword); // specify what paremeters and fields do we want to check
 
-router.post('/test/submit', function(req, res, next){
-  var id = req.body.id;
-  /* redirect to page after post request */
-  res.redirect('/test/' + id);
-})
+  var errors = req.validationErrors();
+  console.log("OPS")
+  if (errors) {
+    req.session.errors = errors;
+    req.session.success = false;
+  } else {
+    req.session.success = true;
+  }
+  res.redirect('/');
+
+});
 
 module.exports = router;
